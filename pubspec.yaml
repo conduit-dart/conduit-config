@@ -1,17 +1,15 @@
-name: safe_config
+name: conduit_config
 description: A safe and convenient way to read YAML configuration files.
-version: 3.0.0-b2
-author: stable|kernel <jobs@stablekernel.com>
-homepage: http://stablekernel.com
-documentation:
+version: 1.0.0-b1
 
 environment:
-  sdk: ">=2.12.0-0 <3.0.0"
+  sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
+  conduit_runtime:
+    git: git@github.com:conduit-dart/conduit-runtime.git
   yaml: ^3.1.0
-  runtime:
-    git: https://github.com/j4qfrost/dart-runtime
 
 dev_dependencies:
+  lint: ^1.5.0
   test: ^1.16.5

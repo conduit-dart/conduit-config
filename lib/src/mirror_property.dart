@@ -1,7 +1,7 @@
 import 'dart:mirrors';
 
-import 'package:safe_config/src/configuration.dart';
-import 'package:safe_config/src/intermediate_exception.dart';
+import 'package:conduit_config/src/configuration.dart';
+import 'package:conduit_config/src/intermediate_exception.dart';
 
 class MirrorTypeCodec {
   MirrorTypeCodec(this.type) {
@@ -16,7 +16,10 @@ class MirrorTypeCodec {
 
       if (!classHasDefaultConstructor) {
         throw StateError(
-            "Failed to compile '${type.reflectedType}'\n\t-> 'Configuration' subclasses MUST declare an unnammed constructor (i.e. '${type.reflectedType}();') if they are nested.");
+          "Failed to compile '${type.reflectedType}'\n\t-> "
+          "'Configuration' subclasses MUST declare an unnammed constructor "
+          "(i.e. '${type.reflectedType}();') if they are nested.",
+        );
       }
     }
   }
@@ -143,7 +146,7 @@ for (var i = 0; i < (v as List).length; i++) {
     throw IntermediateException(e, [i]);
   }
 }
-return out;    
+return out;
     """;
   }
 
@@ -169,13 +172,13 @@ v.forEach((key, val) {
   }
 });
 
-return map;    
+return map;
     """;
   }
 
   String get _decodeConfigSource {
     return """
-    final item = ${expectedType}();
+    final item = $expectedType();
 
     item.decode(v);
 
@@ -189,7 +192,7 @@ return map;
       return int.parse(v);
     }
 
-    return v as int;     
+    return v as int;
 """;
   }
 
@@ -199,7 +202,7 @@ return map;
       return v == "true";
     }
 
-    return v as bool;    
+    return v as bool;
     """;
   }
 }

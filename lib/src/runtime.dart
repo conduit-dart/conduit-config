@@ -1,9 +1,9 @@
 import 'dart:mirrors';
 
-import 'package:runtime/runtime.dart';
-import 'package:safe_config/src/configuration.dart';
+import 'package:conduit_runtime/runtime.dart';
+import 'package:conduit_config/src/configuration.dart';
 
-import 'package:safe_config/src/mirror_property.dart';
+import 'package:conduit_config/src/mirror_property.dart';
 
 class ConfigurationRuntimeImpl extends ConfigurationRuntime
     implements SourceCompiler {
@@ -24,7 +24,7 @@ class ConfigurationRuntimeImpl extends ConfigurationRuntime
         return;
       }
 
-      var decodedValue =
+      final decodedValue =
           tryDecode(configuration, name, () => property.decode(takingValue));
 
       if (!reflect(decodedValue).type.isAssignableTo(property.property.type)) {
@@ -63,7 +63,8 @@ class ConfigurationRuntimeImpl extends ConfigurationRuntime
       buf.writeln("}");
     });
 
-    buf.writeln("""if (valuesCopy.isNotEmpty) {
+    buf.writeln("""
+    if (valuesCopy.isNotEmpty) {
       throw ConfigurationException(configuration,
           "unexpected keys found: \${valuesCopy.keys.map((s) => "'\$s'").join(", ")}.");
     }
@@ -88,7 +89,7 @@ class ConfigurationRuntimeImpl extends ConfigurationRuntime
   }
 
   Map<String, MirrorConfigurationProperty> get _properties {
-    var declarations = <VariableMirror>[];
+    final declarations = <VariableMirror>[];
 
     var ptr = type;
     while (ptr.isSubclassOf(reflectClass(Configuration))) {
@@ -99,10 +100,10 @@ class ConfigurationRuntimeImpl extends ConfigurationRuntime
     }
 
     final m = <String, MirrorConfigurationProperty>{};
-    declarations.forEach((vm) {
+    for (final vm in declarations) {
       final name = MirrorSystem.getName(vm.simpleName);
       m[name] = MirrorConfigurationProperty(vm);
-    });
+    }
     return m;
   }
 
@@ -131,20 +132,21 @@ class ConfigurationRuntimeImpl extends ConfigurationRuntime
     final directives = ctx.getImportDirectives(
         uri: type.originalDeclaration.location!.sourceUri,
         alsoImportOriginalFile: true)
-      ..add("import 'package:safe_config/src/intermediate_exception.dart';");
-    return """${directives.join("\n")}    
-final instance = ConfigurationRuntimeImpl();    
-class ConfigurationRuntimeImpl extends ConfigurationRuntime {
-  @override
-  void decode(Configuration configuration, Map input) {    
-    $decodeImpl        
-  }
+      ..add("import 'package:conduit_config/src/intermediate_exception.dart';");
+    return """
+    ${directives.join("\n")}
+    final instance = ConfigurationRuntimeImpl();
+    class ConfigurationRuntimeImpl extends ConfigurationRuntime {
+      @override
+      void decode(Configuration configuration, Map input) {
+        $decodeImpl
+      }
 
-  @override
-  void validate(Configuration configuration) {
-    $validateImpl
-  }
-}    
+      @override
+      void validate(Configuration configuration) {
+        $validateImpl
+      }
+    }
     """;
   }
 }

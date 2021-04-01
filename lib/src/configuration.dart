@@ -1,10 +1,10 @@
 import 'dart:io';
 
-import 'package:runtime/runtime.dart';
+import 'package:conduit_runtime/runtime.dart';
 import 'package:yaml/yaml.dart';
 import 'package:meta/meta.dart';
 
-import 'package:safe_config/src/intermediate_exception.dart';
+import 'package:conduit_config/src/intermediate_exception.dart';
 
 /// Subclasses of [Configuration] read YAML strings and files, assigning values from the YAML document to properties
 /// of an instance of this type.
@@ -75,32 +75,45 @@ abstract class ConfigurationRuntime {
   void validate(Configuration configuration);
 
   dynamic tryDecode(
-      Configuration configuration,
-      String name,
-      dynamic decode(),
-) {
+    Configuration configuration,
+    String name,
+    dynamic Function() decode,
+  ) {
     try {
       return decode();
     } on ConfigurationException catch (e) {
-      throw ConfigurationException(configuration, e.message,
-          keyPath: [name]..addAll(e.keyPath));
+      throw ConfigurationException(
+        configuration,
+        e.message,
+        keyPath: [name, ...e.keyPath],
+      );
     } on IntermediateException catch (e) {
       final underlying = e.underlying;
       if (underlying is ConfigurationException) {
         final keyPaths = [
           [name],
           e.keyPath,
-          underlying.keyPath
+          underlying.keyPath,
         ].expand((i) => i).toList();
-        throw ConfigurationException(configuration, underlying.message,
-            keyPath: keyPaths);
+
+        throw ConfigurationException(
+          configuration,
+          underlying.message,
+          keyPath: keyPaths,
+        );
       } else if (underlying is TypeError) {
-        throw ConfigurationException(configuration, "input is wrong type",
-            keyPath: [name]..addAll(e.keyPath));
+        throw ConfigurationException(
+          configuration,
+          "input is wrong type",
+          keyPath: [name, ...e.keyPath],
+        );
       }
 
-      throw ConfigurationException(configuration, underlying.toString(),
-          keyPath: [name]..addAll(e.keyPath));
+      throw ConfigurationException(
+        configuration,
+        underlying.toString(),
+        keyPath: [name, ...e.keyPath],
+      );
     } catch (e) {
       throw ConfigurationException(configuration, e.toString(),
           keyPath: [name]);
@@ -110,10 +123,12 @@ abstract class ConfigurationRuntime {
 
 /// Possible options for a configuration item property's optionality.
 enum ConfigurationItemAttributeType {
-  /// [Configuration] properties marked as [required] will throw an exception if their source YAML doesn't contain a matching key.
+  /// [Configuration] properties marked as [required] will throw an exception
+  /// if their source YAML doesn't contain a matching key.
   required,
 
-  /// [Configuration] properties marked as [optional] will be silently ignored if their source YAML doesn't contain a matching key.
+  /// [Configuration] properties marked as [optional] will be silently ignored
+  /// if their source YAML doesn't contain a matching key.
   optional
 }
 
@@ -177,7 +192,7 @@ class ConfigurationException {
       }
     }
 
-    return "Failed to read key '${joinedKeyPath}' for '${configuration.runtimeType}'\n\t-> $message";
+    return "Failed to read key '$joinedKeyPath' for '${configuration.runtimeType}'\n\t-> $message";
   }
 }
 

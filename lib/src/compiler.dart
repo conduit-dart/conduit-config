@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'dart:mirrors';
 
-import 'package:runtime/runtime.dart';
+import 'package:conduit_runtime/runtime.dart';
 
-import 'package:safe_config/src/configuration.dart';
-import 'package:safe_config/src/runtime.dart';
+import 'package:conduit_config/src/configuration.dart';
+import 'package:conduit_config/src/runtime.dart';
 
 class ConfigurationCompiler extends Compiler {
   @override
@@ -18,7 +18,7 @@ class ConfigurationCompiler extends Compiler {
   @override
   void deflectPackage(Directory destinationDirectory) {
     final libFile = File.fromUri(
-        destinationDirectory.uri.resolve("lib/").resolve("safe_config.dart"));
+        destinationDirectory.uri.resolve("lib/").resolve("conduit_config.dart"));
     final contents = libFile.readAsStringSync();
     libFile.writeAsStringSync(
         contents.replaceFirst("export 'src/compiler.dart';", ""));

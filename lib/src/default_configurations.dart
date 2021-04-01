@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:safe_config/src/configuration.dart';
+import 'package:conduit_config/src/configuration.dart';
 
 /// A [Configuration] to represent a database connection configuration.
 class DatabaseConfiguration extends Configuration {
@@ -68,7 +68,7 @@ class DatabaseConfiguration extends Configuration {
           "'${value.runtimeType}' is not assignable; must be a object or string");
     }
 
-    var uri = Uri.parse(value);
+    final uri = Uri.parse(value);
     host = uri.host;
     port = uri.port;
     if (uri.pathSegments.length == 1) {
@@ -80,7 +80,7 @@ class DatabaseConfiguration extends Configuration {
       return;
     }
 
-    var authority = uri.userInfo.split(":");
+    final authority = uri.userInfo.split(":");
     if (authority.isNotEmpty) {
       username = Uri.decodeComponent(authority.first);
     }
