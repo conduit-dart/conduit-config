@@ -5,15 +5,16 @@ import 'package:test/test.dart';
 
 void main() {
   test(
-      "Nested configuration without unnamed constructor is an error at compile time",
-      () {
-    try {
-      RuntimeContext.current; // ignore: unnecessary_statements
-      fail('unreachable');
-    } on StateError catch (e) {
-      expect(e.toString(), contains("Failed to compile 'BadConfig'"));
-    }
-  });
+    "Nested configuration without unnamed constructor is an error at compile time",
+    () {
+      try {
+        RuntimeContext.current; // ignore: unnecessary_statements
+        fail('unreachable');
+      } on StateError catch (e) {
+        expect(e.toString(), contains("Failed to compile 'BadConfig'"));
+      }
+    },
+  );
 }
 
 class ParentConfig extends Configuration {
