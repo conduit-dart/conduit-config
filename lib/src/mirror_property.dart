@@ -228,7 +228,7 @@ class MirrorConfigurationProperty {
 
       return attribute.type == ConfigurationItemAttributeType.required;
     } catch (_) {
-      return true;
+      return false;
     }
   }
 

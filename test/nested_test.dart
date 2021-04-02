@@ -178,7 +178,7 @@ class Parent extends Configuration {
 
   Parent.fromMap(Map m) : super.fromMap(m);
 
-  String? id;
+  late String id;
 
   List<List<Parent>>? listOfListOfParents;
 
@@ -188,7 +188,7 @@ class Parent extends Configuration {
 }
 
 class Child extends Configuration {
-  String? id;
+  late String id;
 
   Parent? parent;
 

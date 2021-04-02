@@ -16,10 +16,13 @@ class DatabaseConfiguration extends Configuration {
 
   /// A named constructor that contains all of the properties of this instance.
   DatabaseConfiguration.withConnectionInfo(
-      this.username, this.password, this.host, this.port, this.databaseName,
-      {bool temporary = false}) {
-    isTemporary = temporary;
-  }
+    this.username,
+    this.password,
+    this.host,
+    this.port,
+    this.databaseName, {
+    this.isTemporary = false,
+  });
 
   /// The host of the database to connect to.
   ///
@@ -51,7 +54,7 @@ class DatabaseConfiguration extends Configuration {
   /// This flag is used for test suites that use a temporary database to run tests against,
   /// dropping it after the tests are complete.
   /// This property is optional.
-  bool? isTemporary;
+  bool isTemporary = false;
 
   @override
   void decode(dynamic value) {

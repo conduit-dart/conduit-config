@@ -25,8 +25,14 @@ class ConfigurationRuntimeImpl extends ConfigurationRuntime
         return;
       }
 
-      final decodedValue =
-          tryDecode(configuration, name, () => property.decode(takingValue));
+      final decodedValue = tryDecode(
+        configuration,
+        name,
+        () => property.decode(takingValue),
+      );
+      if (decodedValue == null) {
+        return;
+      }
 
       if (!reflect(decodedValue).type.isAssignableTo(property.property.type)) {
         throw ConfigurationException(configuration, "input is wrong type",
