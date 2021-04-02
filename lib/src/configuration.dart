@@ -137,25 +137,70 @@ enum ConfigurationItemAttributeType {
 
 /// [Configuration] properties may be attributed with these.
 ///
-/// See [ConfigurationItemAttributeType].
+/// **NOTICE**: This will be removed in version 2.0.0.
+/// To signify required or optional config you could do:
+/// Example:
+/// ```dart
+/// class MyConfig extends Config {
+///    late String required;
+///    String? optional;
+///    String optionalWithDefult = 'default';
+///    late String optionalWithComputedDefault = _default();
+///
+///    String _default() => 'computed';
+/// }
+/// ```
 class ConfigurationItemAttribute {
-  const ConfigurationItemAttribute(this.type);
+  const ConfigurationItemAttribute._(this.type);
 
   final ConfigurationItemAttributeType type;
 }
 
 /// A [ConfigurationItemAttribute] for required properties.
+///
+/// **NOTICE**: This will be removed in version 2.0.0.
+/// To signify required or optional config you could do:
+/// Example:
+/// ```dart
+/// class MyConfig extends Config {
+///    late String required;
+///    String? optional;
+///    String optionalWithDefult = 'default';
+///    late String optionalWithComputedDefault = _default();
+///
+///    String _default() => 'computed';
+/// }
+/// ```
+@Deprecated("Use `late` property")
 const ConfigurationItemAttribute requiredConfiguration =
-    ConfigurationItemAttribute(ConfigurationItemAttributeType.required);
+    ConfigurationItemAttribute._(ConfigurationItemAttributeType.required);
 
 /// A [ConfigurationItemAttribute] for optional properties.
+///
+/// **NOTICE**: This will be removed in version 2.0.0.
+/// To signify required or optional config you could do:
+/// Example:
+/// ```dart
+/// class MyConfig extends Config {
+///    late String required;
+///    String? optional;
+///    String optionalWithDefult = 'default';
+///    late String optionalWithComputedDefault = _default();
+///
+///    String _default() => 'computed';
+/// }
+/// ```
+@Deprecated("Use `nullable` property")
 const ConfigurationItemAttribute optionalConfiguration =
-    ConfigurationItemAttribute(ConfigurationItemAttributeType.optional);
+    ConfigurationItemAttribute._(ConfigurationItemAttributeType.optional);
 
 /// Thrown when reading data into a [Configuration] fails.
 class ConfigurationException {
-  ConfigurationException(this.configuration, this.message,
-      {this.keyPath = const []});
+  ConfigurationException(
+    this.configuration,
+    this.message, {
+    this.keyPath = const [],
+  });
 
   ConfigurationException.missingKeys(
       this.configuration, List<String> missingKeys, {this.keyPath = const []})

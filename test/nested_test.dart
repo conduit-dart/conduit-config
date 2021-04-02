@@ -180,23 +180,18 @@ class Parent extends Configuration {
 
   String? id;
 
-  @optionalConfiguration
   List<List<Parent>>? listOfListOfParents;
 
-  @optionalConfiguration
   List<Parent>? peers;
 
-  @optionalConfiguration
   Map<String, Child>? namedChildren;
 }
 
 class Child extends Configuration {
   String? id;
 
-  @optionalConfiguration
   Parent? parent;
 
-  @optionalConfiguration
   List<Child>? peers;
 }
 

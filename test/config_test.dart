@@ -906,10 +906,8 @@ class TopLevelConfiguration extends Configuration {
 
   TopLevelConfiguration.fromMap(Map map) : super.fromMap(map);
 
-  @requiredConfiguration
   late int port;
 
-  @optionalConfiguration
   String? name;
 
   DatabaseConfiguration? database;
@@ -926,8 +924,9 @@ class TopLevelConfigurationWithValidation extends Configuration {
 
   TopLevelConfigurationWithValidation.fromMap(Map map) : super.fromMap(map);
 
-  @requiredConfiguration
   late int port;
+
+  String? name;
 
   @override
   void validate() {
@@ -936,9 +935,6 @@ class TopLevelConfigurationWithValidation extends Configuration {
       throw ConfigurationException(this, "$port", keyPath: ["port"]);
     }
   }
-
-  @optionalConfiguration
-  String? name;
 }
 
 class DatabaseConfigurationSubclass extends DatabaseConfiguration {
@@ -957,10 +953,8 @@ class ConfigurationSuperclass extends Configuration {
 
   ConfigurationSuperclass.fromMap(Map map) : super.fromMap(map);
 
-  @requiredConfiguration
   late int port;
 
-  @optionalConfiguration
   String? name;
 }
 
@@ -1027,7 +1021,6 @@ class OptionalEmbeddedContainer extends Configuration {
 
   int? port;
 
-  @optionalConfiguration
   DatabaseConfiguration? database;
 }
 
@@ -1041,7 +1034,6 @@ class EnvironmentConfiguration extends Configuration {
   int? testValue;
   bool? testBoolean;
 
-  @optionalConfiguration
   String? optionalDooDad;
 }
 
@@ -1087,6 +1079,5 @@ class DefaultValConfig extends Configuration {
 
   String? required;
 
-  @optionalConfiguration
   String value = "default";
 }

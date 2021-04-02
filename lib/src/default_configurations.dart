@@ -24,31 +24,26 @@ class DatabaseConfiguration extends Configuration {
   /// The host of the database to connect to.
   ///
   /// This property is required.
-  @requiredConfiguration
   late String host;
 
   /// The port of the database to connect to.
   ///
   /// This property is required.
-  @requiredConfiguration
   late int port;
 
   /// The name of the database to connect to.
   ///
   /// This property is required.
-  @requiredConfiguration
   late String databaseName;
 
   /// A username for authenticating to the database.
   ///
   /// This property is optional.
-  @optionalConfiguration
   String? username;
 
   /// A password for authenticating to the database.
   ///
   /// This property is optional.
-  @optionalConfiguration
   String? password;
 
   /// A flag to represent permanence.
@@ -56,7 +51,6 @@ class DatabaseConfiguration extends Configuration {
   /// This flag is used for test suites that use a temporary database to run tests against,
   /// dropping it after the tests are complete.
   /// This property is optional.
-  @optionalConfiguration
   bool? isTemporary;
 
   @override
@@ -109,18 +103,15 @@ class APIConfiguration extends Configuration {
   ///
   /// This property is required.
   /// Example: https://external.api.com:80/resources
-  @requiredConfiguration
   late String baseURL;
 
   /// The client ID.
   ///
   /// This property is optional.
-  @optionalConfiguration
   String? clientID;
 
   /// The client secret.
   ///
   /// This property is optional.
-  @optionalConfiguration
   String? clientSecret;
 }
