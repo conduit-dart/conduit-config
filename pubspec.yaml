@@ -6,8 +6,7 @@ environment:
   sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
-  conduit_runtime:
-    git: git@github.com:conduit-dart/conduit-runtime.git
+  conduit_runtime: 1.0.0-b1
   yaml: ^3.1.0
 
 dev_dependencies:
