@@ -35,3 +35,6 @@ jobs:
           TEST_VALUE: 1
           TEST_BOOL: true
           TEST_DB_ENV_VAR: 'postgres://user:password@host:5432/dbname'
+
+      - name: Run tests with compiled runtime
+        run: dart tool/runtime_test_runner.dart
