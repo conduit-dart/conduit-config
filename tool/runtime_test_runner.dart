@@ -18,14 +18,15 @@ Future main(List<String> args) async {
   var remainingCounter = testFiles.length;
   var passCounter = 0;
   var failCounter = 0;
-  String prompt() => """
+  void prompt() => print("""
 Test Files:
   Pass  : $passCounter
   Fail  : $failCounter
   Remain: $remainingCounter
-  """;
+  """);
   for (final f in testFiles) {
-    print("${prompt()} Loading test ${f.path}...");
+    prompt();
+    print("Loading test ${f.path}...");
     final ctx = BuildContext(
         Directory.current.uri.resolve("lib/").resolve("conduit_config.dart"),
         Directory.current.uri.resolve("build/"),
@@ -35,7 +36,7 @@ Test Files:
     final bm = BuildManager(ctx);
     await bm.build();
 
-    print("${prompt()} Running tests derived from ${f.path}...");
+    print("Running tests derived from ${f.path}...");
     final result = await Process.start(
       "dart",
       ["test/main_test.dart"],
@@ -62,5 +63,5 @@ Test Files:
     await bm.clean();
     remainingCounter--;
   }
-  print(prompt());
+  prompt();
 }
