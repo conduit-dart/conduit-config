@@ -7,13 +7,12 @@ import 'package:conduit_config/src/mirror_property.dart';
 
 class ConfigurationRuntimeImpl extends ConfigurationRuntime
     implements SourceCompiler {
-  ConfigurationRuntimeImpl(this.type) {
-    properties = _properties;
-  }
+  ConfigurationRuntimeImpl(this.type);
 
   final ClassMirror type;
 
-  late Map<String, MirrorConfigurationProperty> properties;
+  late final Map<String, MirrorConfigurationProperty> properties =
+      _collectProperties();
 
   @override
   void decode(Configuration configuration, Map input) {
@@ -88,7 +87,7 @@ class ConfigurationRuntimeImpl extends ConfigurationRuntime
     }
   }
 
-  Map<String, MirrorConfigurationProperty> get _properties {
+  Map<String, MirrorConfigurationProperty> _collectProperties() {
     final declarations = <VariableMirror>[];
 
     var ptr = type;

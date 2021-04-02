@@ -903,7 +903,7 @@ class TopLevelConfiguration extends Configuration {
   TopLevelConfiguration.fromMap(Map map) : super.fromMap(map);
 
   @requiredConfiguration
-  int? port;
+  late int port;
 
   @optionalConfiguration
   String? name;
@@ -923,12 +923,12 @@ class TopLevelConfigurationWithValidation extends Configuration {
   TopLevelConfigurationWithValidation.fromMap(Map map) : super.fromMap(map);
 
   @requiredConfiguration
-  int? port;
+  late int port;
 
   @override
   void validate() {
     super.validate();
-    if (port! < 0 || port! > 65535) {
+    if (port < 0 || port > 65535) {
       throw ConfigurationException(this, "$port", keyPath: ["port"]);
     }
   }
