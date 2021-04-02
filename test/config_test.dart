@@ -767,11 +767,13 @@ void main() {
   });
 
   test("Environment variable escape values read from Environment", () {
-    //ignore: avoid_print
-    print(
-      "This test must be run with environment variables of TEST_VALUE=1 and "
-      "TEST_BOOL=true",
-    );
+    if (Platform.environment["TEST_BOOL"] == null ||
+        Platform.environment["TEST_VALUE"] == null) {
+      fail(
+        "This test must be run with environment variables of TEST_VALUE=1 and "
+        "TEST_BOOL=true",
+      );
+    }
 
     const yamlString = "path: \$PATH\n"
         "optionalDooDad: \$XYZ123\n"
@@ -809,18 +811,20 @@ void main() {
   });
 
   test("DatabaseConfiguration can be read from connection string", () {
-    // ignore: avoid_print
-    print(
-      "This test must be run with environment variables of "
-      "TEST_DB_ENV_VAR=postgres://user:password@host:5432/dbname",
-    );
+    if (Platform.environment["TEST_DB_ENV_VAR"] == null) {
+      fail(
+        "This test must be run with environment variables of "
+        "TEST_DB_ENV_VAR=postgres://user:password@host:5432/dbname",
+      );
+    }
+
     const yamlString = "port: 80\ndatabase: \$TEST_DB_ENV_VAR";
-    final config = TopLevelConfiguration.fromString(yamlString);
-    expect(config.database!.username, "user");
-    expect(config.database!.password, "password");
-    expect(config.database!.host, "host");
-    expect(config.database!.port, 5432);
-    expect(config.database!.databaseName, "dbname");
+    final dbConfig = TopLevelConfiguration.fromString(yamlString).database!;
+    expect(dbConfig.username, "user");
+    expect(dbConfig.password, "password");
+    expect(dbConfig.host, "host");
+    expect(dbConfig.port, 5432);
+    expect(dbConfig.databaseName, "dbname");
   });
 
   test(
