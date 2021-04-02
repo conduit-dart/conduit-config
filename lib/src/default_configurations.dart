@@ -109,7 +109,8 @@ class APIConfiguration extends Configuration {
   ///
   /// This property is required.
   /// Example: https://external.api.com:80/resources
-  String? baseURL;
+  @requiredConfiguration
+  late String baseURL;
 
   /// The client ID.
   ///
