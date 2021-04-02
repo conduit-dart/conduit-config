@@ -115,8 +115,11 @@ abstract class ConfigurationRuntime {
         keyPath: [name, ...e.keyPath],
       );
     } catch (e) {
-      throw ConfigurationException(configuration, e.toString(),
-          keyPath: [name]);
+      throw ConfigurationException(
+        configuration,
+        e.toString(),
+        keyPath: [name],
+      );
     }
   }
 }

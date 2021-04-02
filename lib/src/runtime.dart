@@ -7,12 +7,14 @@ import 'package:conduit_config/src/mirror_property.dart';
 
 class ConfigurationRuntimeImpl extends ConfigurationRuntime
     implements SourceCompiler {
-  ConfigurationRuntimeImpl(this.type);
+  ConfigurationRuntimeImpl(this.type) {
+    // Should be done in the constructor so a type check could be run.
+    properties = _collectProperties();
+  }
 
   final ClassMirror type;
 
-  late final Map<String, MirrorConfigurationProperty> properties =
-      _collectProperties();
+  late final Map<String, MirrorConfigurationProperty> properties;
 
   @override
   void decode(Configuration configuration, Map input) {
@@ -76,8 +78,14 @@ class ConfigurationRuntimeImpl extends ConfigurationRuntime
   void validate(Configuration configuration) {
     final configMirror = reflect(configuration);
     final requiredValuesThatAreMissing = properties.values
-        .where((v) => v.isRequired)
-        .where((v) => configMirror.getField(Symbol(v.key)).reflectee == null)
+        .where((v) {
+          try {
+            final value = configMirror.getField(Symbol(v.key)).reflectee;
+            return v.isRequired && value == null;
+          } catch (e) {
+            return true;
+          }
+        })
         .map((v) => v.key)
         .toList();
 
@@ -109,19 +117,27 @@ class ConfigurationRuntimeImpl extends ConfigurationRuntime
   String get validateImpl {
     final buf = StringBuffer();
 
-    buf.writeln("final missingKeys = <String>[];");
+    const startValidation = """
+    final missingKeys = <String>[];
+""";
+    buf.writeln(startValidation);
     properties.forEach((name, property) {
-      if (property.isRequired) {
-        buf.writeln(
-            "if ((configuration as ${type.reflectedType.toString()}).$name == null) {");
-        buf.writeln("  missingKeys.add('$name');");
-        buf.writeln("}");
+      final propCheck = """
+    try {
+      final $name = (configuration as ${type.reflectedType.toString()}).$name;
+      if (${property.isRequired} && $name == null) {
+        missingKeys.add('$name');
       }
+    } on Error catch (e) {
+      missingKeys.add('$name');
+    }""";
+      buf.writeln(propCheck);
     });
-    buf.writeln("if (missingKeys.isNotEmpty) {");
-    buf.writeln(
-        "  throw ConfigurationException.missingKeys(configuration, missingKeys);");
-    buf.writeln("}");
+    const throwIfErrors = """
+    if (missingKeys.isNotEmpty) {
+      throw ConfigurationException.missingKeys(configuration, missingKeys);
+    }""";
+    buf.writeln(throwIfErrors);
 
     return buf.toString();
   }

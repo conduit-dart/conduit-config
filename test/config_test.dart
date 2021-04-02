@@ -954,7 +954,7 @@ class ConfigurationSuperclass extends Configuration {
   ConfigurationSuperclass.fromMap(Map map) : super.fromMap(map);
 
   @requiredConfiguration
-  int? port;
+  late int port;
 
   @optionalConfiguration
   String? name;
@@ -998,8 +998,8 @@ class DatabaseConfigurationSubclassWithValidation
     super.validate();
     final RegExp validHost = RegExp(
         r"^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$");
-    if (!validHost.hasMatch(host!)) {
-      throw ConfigurationException(this, host!, keyPath: ["host"]);
+    if (!validHost.hasMatch(host)) {
+      throw ConfigurationException(this, host, keyPath: ["host"]);
     }
   }
 }

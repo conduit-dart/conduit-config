@@ -24,17 +24,20 @@ class DatabaseConfiguration extends Configuration {
   /// The host of the database to connect to.
   ///
   /// This property is required.
-  String? host;
+  @requiredConfiguration
+  late String host;
 
   /// The port of the database to connect to.
   ///
   /// This property is required.
-  int? port;
+  @requiredConfiguration
+  late int port;
 
   /// The name of the database to connect to.
   ///
   /// This property is required.
-  String? databaseName;
+  @requiredConfiguration
+  late String databaseName;
 
   /// A username for authenticating to the database.
   ///
