@@ -1,4 +1,4 @@
-import 'package:safe_config/safe_config.dart';
+import 'package:conduit_config/conduit_config.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -133,7 +133,7 @@ void main() {
   });
 
   test("Root.Map.Array.Config.Array", () {
-    var msg = getMessage({
+    final msg = getMessage({
       "id": "1",
       "namedChildren": {
         "k1": {
@@ -154,7 +154,7 @@ void main() {
   });
 
   test("Root.List.List", () {
-    var msg = getMessage({
+    final msg = getMessage({
       "id": "1",
       "listOfListOfParents": [
         [
@@ -178,35 +178,28 @@ class Parent extends Configuration {
 
   Parent.fromMap(Map m) : super.fromMap(m);
 
-  String id;
+  late String id;
 
-  @optionalConfiguration
-  List<List<Parent>> listOfListOfParents;
+  List<List<Parent>>? listOfListOfParents;
 
-  @optionalConfiguration
-  List<Parent> peers;
+  List<Parent>? peers;
 
-  @optionalConfiguration
-  Map<String, Child> namedChildren;
+  Map<String, Child>? namedChildren;
 }
 
 class Child extends Configuration {
-  String id;
+  late String id;
 
-  @optionalConfiguration
-  Parent parent;
+  Parent? parent;
 
-  @optionalConfiguration
-  List<Child> peers;
+  List<Child>? peers;
 }
 
 String getMessage(Map object) {
   try {
     Parent.fromMap(object);
   } on ConfigurationException catch (e) {
-    final msg = e.toString();
-    print(msg);
-    return msg;
+    return e.toString();
   }
 
   fail('did not throw');

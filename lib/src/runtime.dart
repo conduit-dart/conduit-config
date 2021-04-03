@@ -1,19 +1,20 @@
 import 'dart:mirrors';
 
-import 'package:runtime/runtime.dart';
-import 'package:safe_config/src/configuration.dart';
+import 'package:conduit_runtime/runtime.dart';
+import 'package:conduit_config/src/configuration.dart';
 
-import 'mirror_property.dart';
+import 'package:conduit_config/src/mirror_property.dart';
 
 class ConfigurationRuntimeImpl extends ConfigurationRuntime
     implements SourceCompiler {
   ConfigurationRuntimeImpl(this.type) {
-    properties = _properties;
+    // Should be done in the constructor so a type check could be run.
+    properties = _collectProperties();
   }
 
   final ClassMirror type;
 
-  Map<String, MirrorConfigurationProperty> properties;
+  late final Map<String, MirrorConfigurationProperty> properties;
 
   @override
   void decode(Configuration configuration, Map input) {
@@ -24,8 +25,14 @@ class ConfigurationRuntimeImpl extends ConfigurationRuntime
         return;
       }
 
-      var decodedValue =
-          tryDecode(configuration, name, () => property.decode(takingValue));
+      final decodedValue = tryDecode(
+        configuration,
+        name,
+        () => property.decode(takingValue),
+      );
+      if (decodedValue == null) {
+        return;
+      }
 
       if (!reflect(decodedValue).type.isAssignableTo(property.property.type)) {
         throw ConfigurationException(configuration, "input is wrong type",
@@ -48,7 +55,8 @@ class ConfigurationRuntimeImpl extends ConfigurationRuntime
     buf.writeln("final valuesCopy = Map.from(input);");
     properties.forEach((k, v) {
       buf.writeln("{");
-      buf.writeln("final v = Configuration.getEnvironmentOrValue(valuesCopy.remove('$k'));");
+      buf.writeln(
+          "final v = Configuration.getEnvironmentOrValue(valuesCopy.remove('$k'));");
       buf.writeln("if (v != null) {");
       buf.writeln(
           "  final decodedValue = tryDecode(configuration, '$k', () { ${v.source} });");
@@ -62,7 +70,8 @@ class ConfigurationRuntimeImpl extends ConfigurationRuntime
       buf.writeln("}");
     });
 
-    buf.writeln("""if (valuesCopy.isNotEmpty) {
+    buf.writeln("""
+    if (valuesCopy.isNotEmpty) {
       throw ConfigurationException(configuration,
           "unexpected keys found: \${valuesCopy.keys.map((s) => "'\$s'").join(", ")}.");
     }
@@ -75,8 +84,14 @@ class ConfigurationRuntimeImpl extends ConfigurationRuntime
   void validate(Configuration configuration) {
     final configMirror = reflect(configuration);
     final requiredValuesThatAreMissing = properties.values
-        .where((v) => v.isRequired)
-        .where((v) => configMirror.getField(Symbol(v.key)).reflectee == null)
+        .where((v) {
+          try {
+            final value = configMirror.getField(Symbol(v.key)).reflectee;
+            return v.isRequired && value == null;
+          } catch (e) {
+            return true;
+          }
+        })
         .map((v) => v.key)
         .toList();
 
@@ -86,41 +101,49 @@ class ConfigurationRuntimeImpl extends ConfigurationRuntime
     }
   }
 
-  Map<String, MirrorConfigurationProperty> get _properties {
-    var declarations = <VariableMirror>[];
+  Map<String, MirrorConfigurationProperty> _collectProperties() {
+    final declarations = <VariableMirror>[];
 
     var ptr = type;
     while (ptr.isSubclassOf(reflectClass(Configuration))) {
       declarations.addAll(ptr.declarations.values
           .whereType<VariableMirror>()
           .where((vm) => !vm.isStatic && !vm.isPrivate));
-      ptr = ptr.superclass;
+      ptr = ptr.superclass!;
     }
 
     final m = <String, MirrorConfigurationProperty>{};
-    declarations.forEach((vm) {
+    for (final vm in declarations) {
       final name = MirrorSystem.getName(vm.simpleName);
       m[name] = MirrorConfigurationProperty(vm);
-    });
+    }
     return m;
   }
 
   String get validateImpl {
     final buf = StringBuffer();
 
-    buf.writeln("final missingKeys = <String>[];");
+    const startValidation = """
+    final missingKeys = <String>[];
+""";
+    buf.writeln(startValidation);
     properties.forEach((name, property) {
-      if (property.isRequired) {
-        buf.writeln(
-            "if ((configuration as ${type.reflectedType.toString()}).$name == null) {");
-        buf.writeln("  missingKeys.add('$name');");
-        buf.writeln("}");
+      final propCheck = """
+    try {
+      final $name = (configuration as ${type.reflectedType.toString()}).$name;
+      if (${property.isRequired} && $name == null) {
+        missingKeys.add('$name');
       }
+    } on Error catch (e) {
+      missingKeys.add('$name');
+    }""";
+      buf.writeln(propCheck);
     });
-    buf.writeln("if (missingKeys.isNotEmpty) {");
-    buf.writeln(
-        "  throw ConfigurationException.missingKeys(configuration, missingKeys);");
-    buf.writeln("}");
+    const throwIfErrors = """
+    if (missingKeys.isNotEmpty) {
+      throw ConfigurationException.missingKeys(configuration, missingKeys);
+    }""";
+    buf.writeln(throwIfErrors);
 
     return buf.toString();
   }
@@ -128,23 +151,23 @@ class ConfigurationRuntimeImpl extends ConfigurationRuntime
   @override
   String compile(BuildContext ctx) {
     final directives = ctx.getImportDirectives(
-        uri: type.originalDeclaration.location.sourceUri,
+        uri: type.originalDeclaration.location!.sourceUri,
         alsoImportOriginalFile: true)
-      ..add("import 'package:safe_config/src/intermediate_exception.dart';");
+      ..add("import 'package:conduit_config/src/intermediate_exception.dart';");
+    return """
+    ${directives.join("\n")}
+    final instance = ConfigurationRuntimeImpl();
+    class ConfigurationRuntimeImpl extends ConfigurationRuntime {
+      @override
+      void decode(Configuration configuration, Map input) {
+        $decodeImpl
+      }
 
-    return """${directives.join("\n")}    
-final instance = ConfigurationRuntimeImpl();    
-class ConfigurationRuntimeImpl extends ConfigurationRuntime {
-  @override
-  void decode(Configuration configuration, Map input) {    
-    $decodeImpl        
-  }
-
-  @override
-  void validate(Configuration configuration) {
-    $validateImpl
-  }
-}    
+      @override
+      void validate(Configuration configuration) {
+        $validateImpl
+      }
+    }
     """;
   }
 }

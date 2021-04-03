@@ -1,7 +1,8 @@
+// ignore_for_file: avoid_print
 import 'dart:async';
 import 'dart:io';
 
-import 'package:runtime/runtime.dart';
+import 'package:conduit_runtime/runtime.dart';
 
 Future main(List<String> args) async {
   final blacklist = ["no_default_constructor_test.dart"];
@@ -17,12 +18,17 @@ Future main(List<String> args) async {
   var remainingCounter = testFiles.length;
   var passCounter = 0;
   var failCounter = 0;
-  for (File f in testFiles) {
-    final makePrompt = () =>
-        "(Pass: $passCounter Fail: $failCounter Remain: $remainingCounter)";
-    print("${makePrompt()} Loading test ${f.path}...");
+  void prompt() => print("""
+Test Files:
+  Pass  : $passCounter
+  Fail  : $failCounter
+  Remain: $remainingCounter
+  """);
+  for (final f in testFiles) {
+    prompt();
+    print("Loading test ${f.path}...");
     final ctx = BuildContext(
-        Directory.current.uri.resolve("lib/").resolve("safe_config.dart"),
+        Directory.current.uri.resolve("lib/").resolve("conduit_config.dart"),
         Directory.current.uri.resolve("build/"),
         Directory.current.uri.resolve("run"),
         f.readAsStringSync(),
@@ -30,17 +36,21 @@ Future main(List<String> args) async {
     final bm = BuildManager(ctx);
     await bm.build();
 
-    print("${makePrompt()} Running tests derived from ${f.path}...");
-    print("${makePrompt()} Running tests derived from ${f.path}...");
-    final result = await Process.start("dart", ["test/main_test.dart"],
+    print("Running tests derived from ${f.path}...");
+    final result = await Process.start(
+      "dart",
+      ["test/main_test.dart"],
       workingDirectory:
-      ctx.buildDirectoryUri.toFilePath(windows: Platform.isWindows),
-    environment: {
-      "TEST_BOOL": "true",
-      "TEST_DB_ENV_VAR": "postgres://user:password@host:5432/dbname",
-      "TEST_VALUE": "1"
-    });
+          ctx.buildDirectoryUri.toFilePath(windows: Platform.isWindows),
+      environment: {
+        "TEST_BOOL": "true",
+        "TEST_DB_ENV_VAR": "postgres://user:password@host:5432/dbname",
+        "TEST_VALUE": "1"
+      },
+    );
+    // ignore: unawaited_futures
     stdout.addStream(result.stdout);
+    // ignore: unawaited_futures
     stderr.addStream(result.stderr);
 
     if (await result.exitCode != 0) {
@@ -50,8 +60,8 @@ Future main(List<String> args) async {
     } else {
       passCounter++;
     }
-    print("${makePrompt()} Completed tests derived from ${f.path}.");
     await bm.clean();
     remainingCounter--;
   }
+  prompt();
 }

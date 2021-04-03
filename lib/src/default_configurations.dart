@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:safe_config/src/configuration.dart';
+import 'package:conduit_config/src/configuration.dart';
 
 /// A [Configuration] to represent a database connection configuration.
 class DatabaseConfiguration extends Configuration {
@@ -16,45 +16,45 @@ class DatabaseConfiguration extends Configuration {
 
   /// A named constructor that contains all of the properties of this instance.
   DatabaseConfiguration.withConnectionInfo(
-      this.username, this.password, this.host, this.port, this.databaseName,
-      {bool temporary = false}) {
-    isTemporary = temporary;
-  }
+    this.username,
+    this.password,
+    this.host,
+    this.port,
+    this.databaseName, {
+    this.isTemporary = false,
+  });
 
   /// The host of the database to connect to.
   ///
   /// This property is required.
-  String host;
+  late String host;
 
   /// The port of the database to connect to.
   ///
   /// This property is required.
-  int port;
+  late int port;
 
   /// The name of the database to connect to.
   ///
   /// This property is required.
-  String databaseName;
+  late String databaseName;
 
   /// A username for authenticating to the database.
   ///
   /// This property is optional.
-  @optionalConfiguration
-  String username;
+  String? username;
 
   /// A password for authenticating to the database.
   ///
   /// This property is optional.
-  @optionalConfiguration
-  String password;
+  String? password;
 
   /// A flag to represent permanence.
   ///
   /// This flag is used for test suites that use a temporary database to run tests against,
   /// dropping it after the tests are complete.
   /// This property is optional.
-  @optionalConfiguration
-  bool isTemporary;
+  bool isTemporary = false;
 
   @override
   void decode(dynamic value) {
@@ -68,26 +68,24 @@ class DatabaseConfiguration extends Configuration {
           "'${value.runtimeType}' is not assignable; must be a object or string");
     }
 
-    var uri = Uri.parse(value as String);
+    final uri = Uri.parse(value);
     host = uri.host;
     port = uri.port;
     if (uri.pathSegments.length == 1) {
       databaseName = uri.pathSegments.first;
     }
 
-    if (uri.userInfo == null || uri.userInfo == '') {
+    if (uri.userInfo == '') {
       validate();
       return;
     }
 
-    var authority = uri.userInfo.split(":");
-    if (authority != null) {
-      if (authority.isNotEmpty) {
-        username = Uri.decodeComponent(authority.first);
-      }
-      if (authority.length > 1) {
-        password = Uri.decodeComponent(authority.last);
-      }
+    final authority = uri.userInfo.split(":");
+    if (authority.isNotEmpty) {
+      username = Uri.decodeComponent(authority.first);
+    }
+    if (authority.length > 1) {
+      password = Uri.decodeComponent(authority.last);
     }
 
     validate();
@@ -108,17 +106,15 @@ class APIConfiguration extends Configuration {
   ///
   /// This property is required.
   /// Example: https://external.api.com:80/resources
-  String baseURL;
+  late String baseURL;
 
   /// The client ID.
   ///
   /// This property is optional.
-  @optionalConfiguration
-  String clientID;
+  String? clientID;
 
   /// The client secret.
   ///
   /// This property is optional.
-  @optionalConfiguration
-  String clientSecret;
+  String? clientSecret;
 }

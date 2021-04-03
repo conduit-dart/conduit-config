@@ -1,10 +1,10 @@
 import 'dart:io';
 
-import 'package:runtime/runtime.dart';
+import 'package:conduit_runtime/runtime.dart';
 import 'package:yaml/yaml.dart';
 import 'package:meta/meta.dart';
 
-import 'package:safe_config/src/intermediate_exception.dart';
+import 'package:conduit_config/src/intermediate_exception.dart';
 
 /// Subclasses of [Configuration] read YAML strings and files, assigning values from the YAML document to properties
 /// of an instance of this type.
@@ -18,9 +18,9 @@ abstract class Configuration {
 
   /// [contents] must be YAML.
   Configuration.fromString(String contents) {
-    final yamlMap = loadYaml(contents) as Map<dynamic, dynamic>;
+    final yamlMap = loadYaml(contents) as Map<dynamic, dynamic>?;
     final map =
-        yamlMap.map<String, dynamic>((k, v) => MapEntry(k.toString(), v));
+        yamlMap?.map<String, dynamic>((k, v) => MapEntry(k.toString(), v));
     decode(map);
   }
 
@@ -41,7 +41,7 @@ abstract class Configuration {
           this, "input is not an object (is a '${value.runtimeType}')");
     }
 
-    _runtime.decode(this, value as Map);
+    _runtime.decode(this, value);
 
     validate();
   }
@@ -74,66 +74,133 @@ abstract class ConfigurationRuntime {
   void decode(Configuration configuration, Map input);
   void validate(Configuration configuration);
 
-  dynamic tryDecode(Configuration configuration, String name, void decode()) {
+  dynamic tryDecode(
+    Configuration configuration,
+    String name,
+    dynamic Function() decode,
+  ) {
     try {
       return decode();
     } on ConfigurationException catch (e) {
-      throw ConfigurationException(configuration, e.message,
-        keyPath: [name]..addAll(e.keyPath));
+      throw ConfigurationException(
+        configuration,
+        e.message,
+        keyPath: [name, ...e.keyPath],
+      );
     } on IntermediateException catch (e) {
       final underlying = e.underlying;
       if (underlying is ConfigurationException) {
         final keyPaths = [
           [name],
           e.keyPath,
-          underlying.keyPath
+          underlying.keyPath,
         ].expand((i) => i).toList();
-        throw ConfigurationException(configuration, underlying.message,
-          keyPath: keyPaths);
-      } else if (underlying is CastError) {
-        throw ConfigurationException(configuration, "input is wrong type",
-          keyPath: [name]..addAll(e.keyPath));
+
+        throw ConfigurationException(
+          configuration,
+          underlying.message,
+          keyPath: keyPaths,
+        );
+      } else if (underlying is TypeError) {
+        throw ConfigurationException(
+          configuration,
+          "input is wrong type",
+          keyPath: [name, ...e.keyPath],
+        );
       }
 
-      throw ConfigurationException(configuration, underlying.toString(),
-        keyPath: [name]..addAll(e.keyPath));
+      throw ConfigurationException(
+        configuration,
+        underlying.toString(),
+        keyPath: [name, ...e.keyPath],
+      );
     } catch (e) {
-      throw ConfigurationException(configuration, e.toString(),
-        keyPath: [name]);
+      throw ConfigurationException(
+        configuration,
+        e.toString(),
+        keyPath: [name],
+      );
     }
   }
 }
 
 /// Possible options for a configuration item property's optionality.
 enum ConfigurationItemAttributeType {
-  /// [Configuration] properties marked as [required] will throw an exception if their source YAML doesn't contain a matching key.
+  /// [Configuration] properties marked as [required] will throw an exception
+  /// if their source YAML doesn't contain a matching key.
   required,
 
-  /// [Configuration] properties marked as [optional] will be silently ignored if their source YAML doesn't contain a matching key.
+  /// [Configuration] properties marked as [optional] will be silently ignored
+  /// if their source YAML doesn't contain a matching key.
   optional
 }
 
 /// [Configuration] properties may be attributed with these.
 ///
-/// See [ConfigurationItemAttributeType].
+/// **NOTICE**: This will be removed in version 2.0.0.
+/// To signify required or optional config you could do:
+/// Example:
+/// ```dart
+/// class MyConfig extends Config {
+///    late String required;
+///    String? optional;
+///    String optionalWithDefult = 'default';
+///    late String optionalWithComputedDefault = _default();
+///
+///    String _default() => 'computed';
+/// }
+/// ```
 class ConfigurationItemAttribute {
-  const ConfigurationItemAttribute(this.type);
+  const ConfigurationItemAttribute._(this.type);
 
   final ConfigurationItemAttributeType type;
 }
 
 /// A [ConfigurationItemAttribute] for required properties.
+///
+/// **NOTICE**: This will be removed in version 2.0.0.
+/// To signify required or optional config you could do:
+/// Example:
+/// ```dart
+/// class MyConfig extends Config {
+///    late String required;
+///    String? optional;
+///    String optionalWithDefult = 'default';
+///    late String optionalWithComputedDefault = _default();
+///
+///    String _default() => 'computed';
+/// }
+/// ```
+@Deprecated("Use `late` property")
 const ConfigurationItemAttribute requiredConfiguration =
-    ConfigurationItemAttribute(ConfigurationItemAttributeType.required);
+    ConfigurationItemAttribute._(ConfigurationItemAttributeType.required);
 
 /// A [ConfigurationItemAttribute] for optional properties.
+///
+/// **NOTICE**: This will be removed in version 2.0.0.
+/// To signify required or optional config you could do:
+/// Example:
+/// ```dart
+/// class MyConfig extends Config {
+///    late String required;
+///    String? optional;
+///    String optionalWithDefult = 'default';
+///    late String optionalWithComputedDefault = _default();
+///
+///    String _default() => 'computed';
+/// }
+/// ```
+@Deprecated("Use `nullable` property")
 const ConfigurationItemAttribute optionalConfiguration =
-    ConfigurationItemAttribute(ConfigurationItemAttributeType.optional);
+    ConfigurationItemAttribute._(ConfigurationItemAttributeType.optional);
 
 /// Thrown when reading data into a [Configuration] fails.
 class ConfigurationException {
-  ConfigurationException(this.configuration, this.message,
-      {this.keyPath = const []});
+  ConfigurationException(
+    this.configuration,
+    this.message, {
+    this.keyPath = const [],
+  });
 
   ConfigurationException.missingKeys(
       this.configuration, List<String> missingKeys, {this.keyPath = const []})
@@ -153,7 +220,7 @@ class ConfigurationException {
 
   @override
   String toString() {
-    if (keyPath?.isEmpty ?? true) {
+    if (keyPath.isEmpty) {
       return "Failed to read '${configuration.runtimeType}'\n\t-> $message";
     }
 
@@ -173,7 +240,7 @@ class ConfigurationException {
       }
     }
 
-    return "Failed to read key '${joinedKeyPath}' for '${configuration.runtimeType}'\n\t-> $message";
+    return "Failed to read key '$joinedKeyPath' for '${configuration.runtimeType}'\n\t-> $message";
   }
 }
 
