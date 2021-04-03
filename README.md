@@ -159,4 +159,4 @@ See the tests for more examples.
 
 Please file feature requests and bugs at the [issue tracker][tracker].
 
-[tracker]: http://github.com/conduit/conduit_config/issues
+[tracker]: https://github.com/conduit/conduit_config/issues
