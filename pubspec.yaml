@@ -1,5 +1,5 @@
 name: conduit_config
-version: 1.0.0-b1
+version: 1.0.0
 description: A safe and convenient way to read YAML configuration files.
 repository: https://github.com/conduit-dart/conduit-config.git
 environment: 
